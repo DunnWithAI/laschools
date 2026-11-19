@@ -7,3 +7,4 @@ data/raw/**
 !data/raw/**/manifest.csv
 .playwright-mcp/
 data/interim/
+__pycache__/
