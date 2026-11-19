@@ -5,7 +5,7 @@ The site is a Cloudflare Worker that serves the static files in `site/` as-is
 `site/data.json` are committed. Rebuild `site/data.json` locally with the scripts in
 `scripts/` (see the README), commit it, and push.
 
-Live at https://laschools.dunn.us.
+Live at https://laschools.dunn.us. Workers Builds was connected to the repo on 19 November 2026.
 
 ## What happens when
 
