@@ -1,4 +1,7 @@
 .venv/
-data/raw/**/*.pdf
-data/raw/**/*.zip
 .DS_Store
+# Raw downloads stay out of git; keep only their READMEs and manifests.
+data/raw/**
+!data/raw/**/
+!data/raw/**/README.md
+!data/raw/**/manifest.csv
