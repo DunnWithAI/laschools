@@ -1,11 +1,11 @@
 # ABOUTME: Builds the 1992-2024 per-student spending trend for each parish/city school
-# ABOUTME: system from the Census F-33 extract, adjusted to 2024 dollars with CPI-U.
+# ABOUTME: system from the Census F-33 extract, adjusted to 2024-25 dollars with CPI-U.
 from pathlib import Path
 
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent.parent
-BASE_FY = 2024
+BASE_FY = 2025
 # After Hurricane Katrina most New Orleans schools became charters, which Census leaves out
 # of scope, so Orleans figures stop being comparable after FY2005. The RSD is all charters.
 CUTOFF = {"2201170": 2005}

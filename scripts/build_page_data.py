@@ -1,4 +1,4 @@
-# ABOUTME: Assembles everything the explainer page needs (parish map paths, 2023-24 figures,
+# ABOUTME: Assembles everything the explainer page needs (parish map paths, yearly figures,
 # ABOUTME: per-student trends, published-budget survey) into one JSON file in site/.
 import datetime
 import json
@@ -7,6 +7,8 @@ import re
 from pathlib import Path
 
 import pandas as pd
+
+from build_trends import fiscal_year_cpi
 
 ROOT = Path(__file__).resolve().parent.parent
 COMBINED = ROOT / "data" / "combined"
@@ -101,40 +103,52 @@ def budgets_by_parish(lea: pd.DataFrame) -> list:
     return rows
 
 
+def series(frame: pd.DataFrame, fys: list, col: str) -> list:
+    """One value per school year (None where the system or parish has no row that year)."""
+    s = frame.set_index("fy")[col].reindex(fys)
+    return [None if pd.isna(v) else round(float(v)) for v in s]
+
+
 def main() -> None:
-    lea = pd.read_csv(COMBINED / "lea_2023_24.csv", dtype={"lea_code": str})
-    par = pd.read_csv(COMBINED / "parish_2023_24.csv", dtype={"fips": str})
+    lea = pd.read_csv(COMBINED / "lea_years.csv", dtype={"lea_code": str})
+    par = pd.read_csv(COMBINED / "parish_years.csv", dtype={"fips": str})
     trend = pd.read_csv(COMBINED / "trend_f33.csv", dtype={"lea_code": str})
     state_tr = pd.read_csv(COMBINED / "trend_f33_state.csv")
+    fys = sorted(lea.fy.unique())
+    years = [lea[lea.fy == fy].school_year.iloc[0] for fy in fys]
+    cpi = fiscal_year_cpi()
+    to_latest = [round(float(cpi[fys[-1]] / cpi[fy]), 4) for fy in fys]
 
-    keys = [k for k, _ in CATS] + ["teacher_pay", "admin_pay", "benefits", "federal"]
-    systems = []
-    for r in lea.itertuples():
-        systems.append({"code": r.lea_code, "name": r.lea_name, "type": r.lea_type, "parish": r.parish,
-                        "students": int(r.enrollment), "spend": round(r.current_spending),
-                        **{k: round(getattr(r, k)) for k in keys}})
+    money = [k for k, _ in CATS] + ["teacher_pay", "admin_pay", "benefits", "federal"]
+    par = par.rename(columns={"enrollment": "students", "current_spending": "spend"})
+    lea = lea.rename(columns={"enrollment": "students", "current_spending": "spend"})
     parishes = []
-    for r in par.itertuples():
-        parishes.append({"fips": r.fips, "name": r.parish, "population": int(r.population),
-                         "students": int(r.enrollment), "charter_students": int(r.charter_students),
-                         "spend": round(r.current_spending), **{k: round(getattr(r, k)) for k in keys}})
-    trends = {}
-    for code, g in trend.groupby("lea_code"):
-        trends[code] = [[int(y), round(v)] for y, v in zip(g.fiscal_year, g.per_student_real)]
-    total = {"students": int(lea.enrollment.sum()), "spend": round(lea.current_spending.sum()),
-             **{k: round(lea[k].sum()) for k in keys}}
+    for (name, fips), g in par.groupby(["parish", "fips"]):
+        parishes.append({"fips": fips, "name": name,
+                         **{k: series(g, fys, k) for k in ["population", "students", "charter_students", "spend"] + money}})
+    systems = []
+    sys_fields = ["students", "spend", "instruction", "central_admin", "teacher_pay", "admin_pay"]
+    for code, g in lea.groupby("lea_code"):
+        latest = g.sort_values("fy").iloc[-1]
+        systems.append({"code": code, "name": latest["name"], "type": latest.lea_type, "parish": latest.parish,
+                        **{k: series(g, fys, k) for k in sys_fields}})
+    state_g = lea.groupby("fy")[["students", "spend"] + money].sum().reset_index()
+    state = {k: series(state_g, fys, k) for k in ["students", "spend"] + money}
+    trends = {code: [[int(y), round(v)] for y, v in zip(g.fiscal_year, g.per_student_real)]
+              for code, g in trend.groupby("lea_code")}
+    latest_lea = lea[lea.fy == fys[-1]]
     data = {
-        "school_year": "2023-24", "pop_year": 2023, "categories": CATS, "state": total,
+        "years": years, "to_latest": to_latest, "categories": CATS, "state": state,
         "state_trend": [[int(y), round(v)] for y, v in zip(state_tr.fiscal_year, state_tr.per_student_real)],
         "parishes": parishes, "systems": systems, "trends": trends,
-        "budgets": budgets_by_parish(lea), "map": parish_paths(),
+        "budgets": budgets_by_parish(latest_lea), "map": parish_paths(),
     }
     OUT.parent.mkdir(exist_ok=True)
-    text = json.dumps(data, separators=(",", ":"), default=clean)
+    text = json.dumps(data, separators=(",", ":"), default=clean, allow_nan=False)
     if not OUT.exists() or OUT.read_text() != text:
         OUT.write_text(text)
         stamp_updated(datetime.date.today())
-    print(f"{OUT} {OUT.stat().st_size/1024:.0f} KB; {len(parishes)} parishes, {len(systems)} systems, "
+    print(f"{OUT} {OUT.stat().st_size/1024:.0f} KB; {len(parishes)} parishes, {len(systems)} systems, {len(years)} years, "
           f"{len(data['budgets'])} budget rows, {len(data['map']['paths'])} map shapes")
 
 

@@ -21,10 +21,11 @@ where their school sits, and leaves online and state-run schools out of parish t
 
 | Source | Years | Covers | Used for |
 |---|---|---|---|
-| LDOE Annual Financial Report (AFR), `data/raw/ldoe/afr-data` | FY2007-FY2025 (charters from FY2009; FY2012-14 Access only; FY2025 lost its Object column) | Every LEA, by function, object, fund | 2023-24 snapshot |
-| LDOE enrollment multi-stats | Oct 2006-Feb 2026 | Every site | Per-student figures |
-| Census F-33, `data/raw/census-f33` | FY1992-FY2024 (FY1999 missing) | 69 parish/city systems + RSD; charters out of scope | 1992-2024 trend, cross-check |
-| Census population estimates | 2020-2024 | Parishes | Per resident |
+| LDOE Annual Financial Report (AFR), `data/raw/ldoe/afr-data` | 2006-07 to 2024-25 (charters from 2008-09; 2011-12 to 2013-14 Access only; 2024-25 lost its Object column) | Every LEA, by function, object, fund | Every figure on the page, 2008-09 to 2024-25 |
+| LDOE enrollment multi-stats | Oct 2006-Feb 2026 | Every site | Per-student figures (each October) |
+| Census F-33, `data/raw/census-f33` | FY1992-FY2024 (FY1999 missing) | 69 parish/city systems + RSD; charters out of scope | 1992-2024 "longer view", cross-check |
+| Census population estimates | 2008-2024 | Parishes | Per resident |
+| NCES school directory (via Urban Institute), `data/raw/ccd-directory` | 2008-2024 | Every school, with parish | Placing charters in a parish |
 | District websites, `research/district-budgets.csv` | varies | 69 boards: 44 post a budget, 25 not found | Who publishes |
 | Legislative Auditor audits, `research/lla-howto.md` | ~2005 on | Boards and ~140 charters | Not yet used |
 
@@ -34,31 +35,39 @@ requirement, teacher salaries) are listed in `research/ldoe-data.md`.
 ## Pipeline
 
     scripts/extract_f33.py      Census files -> data/extracted/f33_louisiana.csv
-    scripts/build_snapshot.py   AFR + enrollment + population -> data/combined/{lea,parish}_2023_24.csv
-    scripts/build_trends.py     F-33 + CPI -> data/combined/trend_f33*.csv (2024 dollars)
+    scripts/extract_afr.py      AFR zips (unzipped to data/interim/afr, Access years exported
+                                to data/interim/afr-access) -> data/interim/afr-normalized/
+    scripts/build_history.py    normalized AFR + enrollment + directory + population
+                                -> data/combined/{lea,parish}_years.csv, coverage_gaps.csv
+    scripts/build_trends.py     F-33 + CPI -> data/combined/trend_f33*.csv (2024-25 dollars)
     scripts/build_page_data.py  everything above + map shapes -> site/data.json
+                                (also stamps the page's "Updated" date when the data changes)
 
-    .venv/bin/python -I scripts/build_snapshot.py \
-      --afr "data/interim/afr2324/2023-2024 AFR Web/AFR - 2 Expenditure.xlsb" \
-      --enrollment "data/raw/ldoe/enrollment-multi-stats/oct-2023-multi-stats-(total-by-site-and-school-system)_web.xlsx" \
-      --school-year 2023-24 --pop-year 2023
-
-`data/raw/` is not in git (about 1 GB); each folder's README or `manifest.csv` has the URLs.
+`data/raw/` and `data/interim/` are not in git (several GB); each raw folder's README or
+`manifest.csv` has the URLs. The Access years were exported with the `access-parser`
+package (see `extract_afr.py` for the table names).
 
 ## Definitions and checks
 
 - Day-to-day spending = AFR functions 1000-3999, minus tuition paid to other LEAs
   (objects 561-569). Leaves out construction, debt and transfers (incl. OPSB pass-through
-  to charters), so nothing is counted twice. LEA code 999 is a statewide totals row: dropped.
-- Teacher pay = object 112; administrator pay = object 111. Salaries only.
-- Check: for all 70 parish/city systems, AFR 2023-24 day-to-day spending is within 5% of
-  Census F-33 FY2024 current spending (median +1.2%).
+  to charters), so nothing is counted twice. State-total rows (codes 999...) are dropped.
+- Teacher pay = object 112; administrator pay = object 111. Salaries only. 2024-25 has no
+  Object column; it is filled in by line item (KeyPchCd) from earlier years. No line item
+  changed its object code between 2017-18 and 2023-24 (2,335 compared).
+- Each school's students go to the system that reports its spending: by site code, then,
+  where a year codes a school differently in the two files (2015-16), by school name.
+- Charters are placed in a parish by the NCES directory; `data/crosswalk/site_parish_overrides.csv`
+  fixes the two schools the directory gets wrong.
+- Check: for every parish/city system in every year 2008-09 to 2023-24, AFR day-to-day
+  spending is within 11% of Census F-33 current spending (median about +1%), except
+  FY2012, when Census runs 15-28% high for about ten systems and falls back the next year.
+  That Census bump is also why its statewide trend dips from FY2012 to FY2013.
 
 ## Known gaps
 
-- Only one AFR year (2023-24) is processed; the AFR history back to FY2009 with charters
-  is downloaded but not extracted.
-- Census statewide trend drops about $1,300 per student between FY2012 and FY2013; not yet explained.
+- Students at a few state-run special schools (under 1,600 a year) have no spending in the
+  AFR and are left out (`data/combined/coverage_gaps.csv`).
 - Budget survey: 7 district sites block automated visits; "not found" is not proof of none.
 - Charter type definitions and some history in `research/lea-universe.md` were written
   from memory by a research agent; check before publishing.

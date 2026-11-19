@@ -143,13 +143,16 @@ tr.click { cursor: pointer; }
 .findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
 .finding { display: grid; gap: 6px; align-content: start; padding-top: 12px; border-top: 3px solid var(--accent); }
 .finding b { font-family: var(--sans); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.minis { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; }
+.mini { display: grid; gap: 4px; align-content: start; }
+.mini h4 { margin: 0; font-family: var(--sans); font-size: .9rem; }
 @media (prefers-reduced-motion: reduce) { .map path { transition: none; } }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="eyebrow">Louisiana public schools · 2023-24 school year</div>
+    <div class="eyebrow" id="eyebrow">Louisiana public schools</div>
     <h1>Louisiana School Dollars</h1>
     <p class="lede" id="lede">Loading the figures…</p>
   </header>
@@ -157,7 +160,7 @@ tr.click { cursor: pointer; }
   <section aria-labelledby="h-findings">
     <h2 id="h-findings">What stands out</h2>
     <div class="findings" id="findings"></div>
-    <p class="src">Calculated from the Louisiana Department of Education's 2023-24 Annual Financial Report and October 2023 enrollment counts [1][2]. Day-to-day spending only; see the notes.</p>
+    <p class="src">Calculated from the Louisiana Department of Education's Annual Financial Reports and October enrollment counts [1][2], with changes over time adjusted for inflation [5]. Day-to-day spending only; see the notes.</p>
   </section>
 
   <section aria-labelledby="h-map">
@@ -167,6 +170,8 @@ tr.click { cursor: pointer; }
         <div class="controls">
           <label for="parishPick" class="muted">Parish</label>
           <select id="parishPick"></select>
+          <label for="yearPick" class="muted">School year</label>
+          <select id="yearPick"></select>
         </div>
         <div class="seg" role="group" aria-label="Colour the map by" id="metricPick"></div>
         <div class="map" id="map"></div>
@@ -179,9 +184,9 @@ tr.click { cursor: pointer; }
 
   <section aria-labelledby="h-compare">
     <h2 id="h-compare">Every parish, side by side</h2>
-    <p>Each row counts all the public schools in the parish: the parish school board, any city school system, and charter schools located there. Online schools and state-run schools that draw from the whole state are left out. Click a heading to sort, or a row to open that parish above.</p>
+    <p>Each row counts all the public schools in the parish: the parish school board, any city school system, and charter schools located there. Online schools and state-run schools that draw from the whole state are left out. The year follows the picker above. Click a heading to sort, or a row to open that parish.</p>
     <div class="tablewrap"><table id="compare"></table></div>
-    <p class="src">Calculated from [1][2][3].</p>
+    <p class="src">Calculated from [1][2][3][5].</p>
   </section>
 
   <section aria-labelledby="h-pub">
@@ -194,21 +199,23 @@ tr.click { cursor: pointer; }
   <section aria-labelledby="h-notes" class="notes">
     <h2 id="h-notes">About these numbers</h2>
     <ol>
-      <li><b>Day-to-day spending</b> is what school systems reported spending in 2023-24 on instruction, support, administration, buildings, buses and food (functions 1000-3999 in the state's chart of accounts). It leaves out construction, debt payments and money passed from one school system to another, such as Orleans Parish School Board's payments to New Orleans charter schools, so nothing is counted twice.</li>
-      <li><b>Teacher pay and administrator pay</b> are salary dollars only (object codes 112 and 111), not benefits. "Administrators" means everyone the state codes as an official or administrator: superintendents, principals, assistant principals, charter school chief executives, supervisors and directors.</li>
-      <li><b>Per student</b> uses the October 2023 count of students at each school. <b>Per resident</b> uses the Census Bureau's July 2023 parish population estimate [3]. Per-resident figures are context, not a measure of local taxes: much of the money is state and federal.</li>
-      <li><b>Charter schools</b> that are their own school systems are counted in the parish where their school sits. Charters run under a parish school board (Types 1, 3 and 4) are already inside that board's figures.</li>
-      <li><b>The long-run chart</b> uses the Census Bureau's Annual Survey of School System Finances [4], adjusted to 2024 dollars with the consumer price index [5]. Census does not count most charter schools, so it covers parish and city systems only, and New Orleans stops at 2005: after Hurricane Katrina most of its schools became charters.</li>
-      <li>The state and Census figures agree closely. For each of the 70 parish and city systems, the state's 2023-24 day-to-day spending is within 5% of Census's figure for the same year, usually within about 1%.</li>
+      <li><b>Day-to-day spending</b> is what school systems reported spending each year on instruction, support, administration, buildings, buses and food (functions 1000-3999 in the state's chart of accounts). It leaves out construction, debt payments and money passed from one school system to another, such as Orleans Parish School Board's payments to New Orleans charter schools, so nothing is counted twice.</li>
+      <li><b>Dollars.</b> Figures for a single year are in that year's dollars. Anything that compares years ("since 2008-09", the over-time charts) is adjusted to 2024-25 dollars with the consumer price index [5].</li>
+      <li><b>Teacher pay and administrator pay</b> are salary dollars only (object codes 112 and 111), not benefits. "Administrators" means everyone the state codes as an official or administrator: superintendents, principals, assistant principals, charter school chief executives, supervisors and directors. The 2024-25 file leaves out these codes, so they are filled in from the same line items in earlier years, where every line item kept the same code.</li>
+      <li><b>Per student</b> uses each October's count of students at each school [2]. <b>Per resident</b> uses the Census Bureau's July population estimate for the parish [3]. Per-resident figures are context, not a measure of local taxes: much of the money is state and federal.</li>
+      <li><b>Charter schools</b> that are their own school systems are counted in the parish where their school sits, found through the federal school directory [7]. Charters run under a parish school board (Types 1, 3 and 4) are inside that board's figures. A few state-run schools (for example the schools for the deaf and blind) report no spending in this data, so their students, under 1,600 a year, are left out.</li>
+      <li><b>The longer view</b> uses the Census Bureau's Annual Survey of School System Finances [4]. Census does not count most charter schools, so it covers parish and city systems only, and New Orleans stops at 2005: after Hurricane Katrina most of its schools became charters. Census figures for 2011-12 run 15% to 28% above the state's for about ten systems and fall back the next year; the state's figures do not jump.</li>
+      <li>Apart from that year, the two sources agree. For every parish and city system in every year from 2008-09 to 2023-24, the state's day-to-day spending is within 11% of Census's figure, and usually within about 1%.</li>
     </ol>
     <h3>Sources</h3>
     <ol id="sources">
-      <li id="src-1">Louisiana Department of Education, <a href="https://doe.louisiana.gov/docs/default-source/financial-data/2023-2024-afr-web.zip">2023-2024 Annual Financial Report data, Report 2: Expenditures</a> (<a href="https://doe.louisiana.gov/data-and-reports/financial-data">financial data page</a>).</li>
-      <li id="src-2">Louisiana Department of Education, <a href="https://doe.louisiana.gov/docs/default-source/data-management/oct-2023-multi-stats-(total-by-site-and-school-system)_web.xlsx">Multiple Statistics by Site, October 2, 2023</a>.</li>
-      <li id="src-3">U.S. Census Bureau, <a href="https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/counties/totals/co-est2024-alldata.csv">county population estimates, 2020-2024</a>.</li>
+      <li id="src-1">Louisiana Department of Education, Annual Financial Report data, Report 2: Expenditures, 2008-09 to 2024-25, from the <a href="https://doe.louisiana.gov/data-and-reports/financial-data">financial data page</a> (for example <a href="https://doe.louisiana.gov/docs/default-source/financial-data/2023-2024-afr-web.zip">2023-24</a>).</li>
+      <li id="src-2">Louisiana Department of Education, Multiple Statistics by Site, each October 2008 to 2024, from the <a href="https://doe.louisiana.gov/data-and-reports/enrollment-data">enrollment data page</a>.</li>
+      <li id="src-3">U.S. Census Bureau, county population estimates: <a href="https://www2.census.gov/programs-surveys/popest/datasets/2000-2010/intercensal/county/co-est00int-tot.csv">2000-2010</a>, <a href="https://www2.census.gov/programs-surveys/popest/datasets/2010-2020/counties/totals/co-est2020-alldata.csv">2010-2020</a>, <a href="https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/counties/totals/co-est2024-alldata.csv">2020-2024</a>.</li>
       <li id="src-4">U.S. Census Bureau, <a href="https://www.census.gov/programs-surveys/school-finances.html">Annual Survey of School System Finances</a>, fiscal years 1992-2024 (1999 not posted).</li>
       <li id="src-5">U.S. Bureau of Labor Statistics, <a href="https://fred.stlouisfed.org/series/CPIAUCSL">Consumer Price Index for All Urban Consumers</a>, via FRED, averaged over each July-June school year.</li>
       <li id="src-6">Each school system's website; see the links in the table above. Audited financial statements for every school board and most charters are also posted by the <a href="https://www.lla.la.gov/">Louisiana Legislative Auditor</a>.</li>
+      <li id="src-7">National Center for Education Statistics, Common Core of Data school directory, 2008-2024, via the <a href="https://educationdata.urban.org/documentation/">Urban Institute Education Data Portal</a>.</li>
     </ol>
     <p class="small muted">Figures are calculated, not copied from a published table; check the sources before quoting them.</p>
   </section>
@@ -228,67 +235,77 @@ tr.click { cursor: pointer; }
   const millions = (v) => v >= 1e9 ? "$" + (v / 1e9).toFixed(2) + " billion" : "$" + (v / 1e6).toFixed(1) + " million";
   const short = (v) => v >= 1e9 ? "$" + (v / 1e9).toFixed(2) + "B" : "$" + (v / 1e6).toFixed(1) + "M";
   const pct = (v) => (v < 0.01 && v > 0 ? "<1" : Math.round(v * 100)) + "%";
+  const signed = (v) => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(Math.round(v * 100)) + "%";
+  const ratioF = (v) => "$" + v.toFixed(2);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const div = (a, b) => (a == null || !b ? null : a / b);
 
+  const Y = D.years, L = Y.length - 1, REAL = D.to_latest;
+  let yi = L;
   const CAT_COLORS = ["c1", "c3", "c4", "c2", "c5", "c6", "c7", "c-other"];
-  const ST = D.state;
-  ST.per = ST.spend / ST.students;
   const TYPE_LABEL = { parish_system: "Parish school board", city_system: "City school system", charter_type2: "Charter (state-approved)",
-    charter_local: "Charter (local board)", charter_rsd: "Charter (state takeover)", lab_school: "University lab school",
+    charter_local: "Charter (local board)", charter_rsd: "Charter (state takeover)", charter: "Charter", lab_school: "University lab school",
     state_special: "State-run school", rsd: "Recovery School District", other: "Other" };
 
-  const P = D.parishes.map((p) => ({
-    ...p,
-    per: p.students ? p.spend / p.students : null,
-    perRes: p.population ? p.spend / p.population : null,
-    instr: p.spend ? p.instruction / p.spend : null,
-    central: p.spend ? p.central_admin / p.spend : null,
-    ratio: p.admin_pay ? p.teacher_pay / p.admin_pay : null,
-    charterShare: p.students ? p.charter_students / p.students : 0,
-  }));
+  // ---- derived figures, by year index
+  const P = D.parishes;
   const byName = Object.fromEntries(P.map((p) => [p.name, p]));
-  const stInstr = ST.instruction / ST.spend, stRatio = ST.teacher_pay / ST.admin_pay, stCentral = ST.central_admin / ST.spend;
-  const stPop = P.reduce((a, p) => a + p.population, 0);
-  const stInParish = P.reduce((a, p) => a + p.spend, 0);
+  const ST = D.state;
+  const stPop = (i) => P.reduce((a, p) => a + (p.population[i] || 0), 0);
+  const stParishSpend = (i) => P.reduce((a, p) => a + (p.spend[i] || 0), 0);
+  const M = {
+    per: (o, i) => div(o.spend[i], o.students[i]),
+    perReal: (o, i) => div(o.spend[i], o.students[i]) == null ? null : div(o.spend[i], o.students[i]) * REAL[i],
+    perRes: (o, i) => div(o.spend[i], o.population[i]),
+    instr: (o, i) => div(o.instruction[i], o.spend[i]),
+    central: (o, i) => div(o.central_admin[i], o.spend[i]),
+    ratio: (o, i) => div(o.teacher_pay[i], o.admin_pay[i]),
+    charterShare: (o, i) => div(o.charter_students[i], o.students[i]) ?? 0,
+    change: (o, i) => { const a = M.perReal(o, 0), b = M.perReal(o, i); return a && b && i > 0 ? b / a - 1 : null; },
+  };
+  const stVal = (k, i) => k === "perRes" ? stParishSpend(i) / stPop(i) : k === "charterShare"
+    ? P.reduce((a, p) => a + (p.charter_students[i] || 0), 0) / ST.students[i] : M[k](ST, i);
 
   const METRICS = [
     { key: "per", label: "Per student", f: money, note: "Day-to-day spending per student" },
+    { key: "change", label: "Change since " + Y[0], f: signed, note: "Change in spending per student since " + Y[0] + ", after inflation" },
     { key: "instr", label: "Share to classrooms", f: pct, note: "Share of spending on classroom instruction" },
-    { key: "ratio", label: "Teachers vs administrators", f: (v) => "$" + v.toFixed(2), note: "Teacher salary dollars for every $1 of administrator salary" },
+    { key: "ratio", label: "Teachers vs administrators", f: ratioF, note: "Teacher salary dollars for every $1 of administrator salary" },
     { key: "perRes", label: "Per resident", f: money, note: "Day-to-day school spending per parish resident" },
     { key: "charterShare", label: "In charters", f: pct, note: "Share of students in charter schools that run themselves" },
   ];
   let metric = METRICS[0];
   let current = null;
 
-  // ---- lede and findings
-  $("#lede").innerHTML = `In ${D.school_year}, Louisiana's public schools spent <strong>${millions(ST.spend)}</strong> on day-to-day costs. ` +
-    `That is <strong>${money(ST.per)}</strong> for each of ${fmt0.format(ST.students)} students, and ` +
-    `<strong>$${Math.round(stInstr * 100)} of every $100</strong> went to classroom instruction. Pick a parish to see how its schools compare.`;
-  const sorted = (k) => P.filter((p) => p[k] != null).sort((a, b) => a[k] - b[k]);
-  const perS = sorted("per"), ratS = sorted("ratio"), insS = sorted("instr");
-  const hi = perS[perS.length - 1], lo = perS[0];
-  const tr = D.state_trend, tFirst = tr[0], tLast = tr[tr.length - 1];
+  // ---- lede and findings (latest year, plus change since the first year)
+  const s0 = 0, sL = L;
+  $("#eyebrow").textContent = `Louisiana public schools · ${Y[0]} to ${Y[L]}`;
+  $("#lede").innerHTML = `In ${Y[L]}, Louisiana's public schools spent <strong>${millions(ST.spend[L])}</strong> on day-to-day costs. ` +
+    `That is <strong>${money(M.per(ST, L))}</strong> for each of ${fmt0.format(ST.students[L])} students, and ` +
+    `<strong>$${Math.round(M.instr(ST, L) * 100)} of every $100</strong> went to classroom instruction. Pick a parish to see how its schools compare, and how that has changed since ${Y[0]}.`;
+  const rank = (k, i) => P.filter((p) => M[k](p, i) != null).sort((a, b) => M[k](a, i) - M[k](b, i));
+  const perS = rank("per", L), ratS = rank("ratio", L);
   $("#findings").innerHTML = [
-    [`${money(lo.per)} to ${money(hi.per)}`, `The range in spending per student, from ${lo.name} Parish to ${hi.name} Parish.`],
-    [`$${ratS[0].ratio.toFixed(2)} to $${ratS[ratS.length - 1].ratio.toFixed(2)}`, `Teacher pay for every $1 of administrator pay, from ${ratS[0].name} to ${ratS[ratS.length - 1].name}. Statewide it is $${stRatio.toFixed(2)}.`],
-    [`${pct(insS[0].instr)} to ${pct(insS[insS.length - 1].instr)}`, `The share of spending that goes to classroom instruction, from ${insS[0].name} to ${insS[insS.length - 1].name}.`],
-    [`${money(tFirst[1])} → ${money(tLast[1])}`, `Spending per student in parish and city school systems, ${tFirst[0]} to ${tLast[0]}, in 2024 dollars [4][5].`],
+    [`${money(M.perReal(ST, s0))} → ${money(M.perReal(ST, sL))}`, `Spending per student, ${Y[0]} to ${Y[L]}, after inflation: up ${pct(M.perReal(ST, sL) / M.perReal(ST, s0) - 1)}.`],
+    [`$${Math.round(M.instr(ST, s0) * 100)} → $${Math.round(M.instr(ST, sL) * 100)}`, `Out of every $100, what went to classroom instruction in ${Y[0]} and in ${Y[L]}.`],
+    [`${ratioF(M.ratio(ST, s0))} → ${ratioF(M.ratio(ST, sL))}`, `Teacher pay for every $1 of administrator pay, ${Y[0]} to ${Y[L]}.`],
+    [`${money(M.per(perS[0], L))} to ${money(M.per(perS[perS.length - 1], L))}`, `The range in spending per student in ${Y[L]}, from ${perS[0].name} Parish to ${perS[perS.length - 1].name} Parish.`],
+    [`${ratioF(M.ratio(ratS[0], L))} to ${ratioF(M.ratio(ratS[ratS.length - 1], L))}`, `Teacher pay per $1 of administrator pay in ${Y[L]}, from ${ratS[0].name} to ${ratS[ratS.length - 1].name}.`],
   ].map(([b, t]) => `<div class="finding"><b>${b}</b><p>${t}</p></div>`).join("");
 
   // ---- map
   const svgNS = "http://www.w3.org/2000/svg";
-  const M = D.map;
+  const MP = D.map;
   const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("viewBox", `-4 -4 ${M.width + 8} ${M.height + 8}`);
+  svg.setAttribute("viewBox", `-4 -4 ${MP.width + 8} ${MP.height + 8}`);
   svg.setAttribute("role", "img");
   svg.setAttribute("aria-label", "Map of Louisiana parishes. Use the parish list above to choose one.");
   const pathEls = {};
   for (const p of P) {
     const el = document.createElementNS(svgNS, "path");
-    el.setAttribute("d", M.paths[p.fips]);
+    el.setAttribute("d", MP.paths[p.fips]);
     el.addEventListener("click", () => select(p.name, true));
-    el.addEventListener("mouseenter", () => { $("#maptip").textContent = `${p.name}: ${metric.note.toLowerCase()} ${p[metric.key] == null ? "not available" : metric.f(p[metric.key])}`; });
+    el.addEventListener("mouseenter", () => { const v = M[metric.key](p, yi); $("#maptip").textContent = `${p.name}, ${Y[yi]}: ${v == null ? "not available" : metric.f(v)}`; });
     el.addEventListener("mouseleave", () => { $("#maptip").textContent = ""; });
     const t = document.createElementNS(svgNS, "title"); t.textContent = p.name; el.appendChild(t);
     pathEls[p.name] = el; svg.appendChild(el);
@@ -300,128 +317,155 @@ tr.click { cursor: pointer; }
     return Array.from({ length: n - 1 }, (_, i) => s[Math.floor(((i + 1) * s.length) / n)]);
   }
   function paint() {
-    const vals = P.map((p) => p[metric.key]).filter((v) => v != null);
+    const vals = P.map((p) => M[metric.key](p, yi)).filter((v) => v != null);
     const isCharter = metric.key === "charterShare";
-    let breaks = isCharter ? [0.0001, 0.05, 0.15, 0.4] : quantiles(vals, 5);
-    const bin = (v) => breaks.findIndex((b) => v < b) === -1 ? 4 : breaks.findIndex((b) => v < b);
-    for (const p of P) {
-      const v = p[metric.key];
-      pathEls[p.name].style.fill = v == null ? "var(--none)" : `var(--q${bin(v)})`;
-    }
+    document.querySelectorAll("#metricPick button").forEach((btn) => btn.setAttribute("aria-pressed", btn.dataset.k === metric.key));
+    $("#legend").innerHTML = "";
+    if (!vals.length) { for (const p of P) pathEls[p.name].style.fill = "var(--none)"; $("#legend").textContent = `Pick a year after ${Y[0]} to see the change.`; return; }
+    const breaks = isCharter ? [0.0001, 0.05, 0.15, 0.4] : quantiles(vals, 5);
+    const bin = (v) => { const i = breaks.findIndex((b) => v < b); return i === -1 ? 4 : i; };
+    for (const p of P) { const v = M[metric.key](p, yi); pathEls[p.name].style.fill = v == null ? "var(--none)" : `var(--q${bin(v)})`; }
     const edges = [Math.min(...vals), ...breaks, Math.max(...vals)];
-    $("#legend").innerHTML = `<span class="muted">${esc(metric.note)}:</span>` + [0, 1, 2, 3, 4].map((i) =>
-      `<span><i style="background:var(--q${i})"></i>${isCharter && i === 0 ? "none" : metric.f(edges[i]) + "–" + metric.f(edges[i + 1])}</span>`).join("");
-    document.querySelectorAll("#metricPick button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.k === metric.key));
+    $("#legend").innerHTML = `<span class="muted">${esc(metric.note)}, ${Y[yi]}:</span>` + [0, 1, 2, 3, 4].map((i) =>
+      `<span><i style="background:var(--q${i})"></i>${isCharter && i === 0 ? "none" : metric.f(edges[i]) + " to " + metric.f(edges[i + 1])}</span>`).join("");
   }
   $("#metricPick").innerHTML = METRICS.map((m) => `<button type="button" data-k="${m.key}">${m.label}</button>`).join("");
   $("#metricPick").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
     metric = METRICS.find((m) => m.key === b.dataset.k); paint();
   });
-
-  // ---- parish picker
-  $("#parishPick").innerHTML = P.slice().sort((a, b) => a.name.localeCompare(b.name))
-    .map((p) => `<option value="${esc(p.name)}">${esc(p.name)}</option>`).join("");
+  $("#parishPick").innerHTML = P.slice().sort((a, b) => a.name.localeCompare(b.name)).map((p) => `<option value="${esc(p.name)}">${esc(p.name)}</option>`).join("");
   $("#parishPick").addEventListener("change", (e) => select(e.target.value, false));
+  $("#yearPick").innerHTML = Y.map((y, i) => `<option value="${i}">${y}</option>`).reverse().join("");
+  $("#yearPick").addEventListener("change", (e) => { yi = +e.target.value; paint(); drawCompare(); select(current.name, false); });
 
-  // ---- line chart (starts at zero)
-  function lineChart(series, yMax) {
-    const W = 560, H = 230, L = 52, R = 12, T = 12, B = 26;
-    const years = series.flatMap((s) => s.pts.map((p) => p[0]));
-    const x0 = Math.min(...years), x1 = Math.max(...years);
-    const top = Math.ceil(yMax / 5000) * 5000;
-    const x = (v) => L + ((v - x0) / (x1 - x0)) * (W - L - R), y = (v) => T + (1 - v / top) * (H - T - B);
+  // ---- line chart: series of [x, y]; y axis starts at zero
+  function lineChart(series, { fmt, ticks, xLabels, mark, H = 200, W = 560, Lm = 52, label }) {
+    const R = 14, T = 12, B = 26;
+    const xs = series.flatMap((s) => s.pts.map((p) => p[0]));
+    const x0 = Math.min(...xs), x1 = Math.max(...xs);
+    const top = ticks[ticks.length - 1];
+    const x = (v) => Lm + ((v - x0) / (x1 - x0)) * (W - Lm - R), y = (v) => T + (1 - v / top) * (H - T - B);
     let g = "";
-    for (let v = 0; v <= top; v += 5000) g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v ? "$" + v / 1000 + "k" : "$0"}</text>`;
-    for (let yr = Math.ceil(x0 / 5) * 5; yr <= x1; yr += 5) g += `<text x="${x(yr)}" y="${H - 6}" text-anchor="middle">${yr}</text>`;
+    for (const v of ticks) g += `<line x1="${Lm}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${Lm - 6}" y="${y(v) + 4}" text-anchor="end">${fmt(v)}</text>`;
+    xLabels.forEach(([xv, lab], j) => { const a = xLabels.length > 1 && j === 0 && xv === x0 ? "start" : j === xLabels.length - 1 && xv === x1 ? "end" : "middle";
+      g += `<text x="${x(xv)}" y="${H - 6}" text-anchor="${a}">${lab}</text>`; });
+    if (mark != null) g += `<line x1="${x(mark)}" x2="${x(mark)}" y1="${T}" y2="${H - B}" stroke="var(--rule-strong)" stroke-dasharray="2 3"/>`;
     for (const s of series) {
-      // break the line where a year is missing (FY1999 is not posted)
       let d = "", prev = null;
-      for (const [yr, v] of s.pts) { d += (prev !== null && yr - prev === 1 ? "L" : "M") + x(yr).toFixed(1) + "," + y(v).toFixed(1); prev = yr; }
+      for (const [xv, v] of s.pts) { if (v == null) { prev = null; continue; } d += (prev !== null && xv - prev === 1 ? "L" : "M") + x(xv).toFixed(1) + "," + y(v).toFixed(1); prev = xv; }
       g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.w || 2}" ${s.dash ? 'stroke-dasharray="5 4"' : ""}/>`;
-      const last = s.pts[s.pts.length - 1];
-      g += `<circle cx="${x(last[0])}" cy="${y(last[1])}" r="3" fill="${s.color}"/>`;
+      const pts = s.pts.filter((p) => p[1] != null), last = pts[pts.length - 1];
+      if (last) g += `<circle cx="${x(last[0])}" cy="${y(last[1])}" r="3" fill="${s.color}"/>`;
     }
-    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Line chart of spending per student over time">${g}</svg>`;
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">${g}</svg>`;
+  }
+  function niceTicks(max, n = 4) {
+    const raw = max / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw);
+    return Array.from({ length: Math.ceil(max / step) + 1 }, (_, i) => i * step);
+  }
+  const yrX = Y.map((_, i) => i);
+  const yrLabels = [0, Math.round(L / 2), L].map((i) => [i, Y[i]]);
+  function overTime(p, k, fmt, title, sentence) {
+    const ser = (o) => yrX.map((i) => [i, k === "perReal" ? M.perReal(o, i) : M[k](o, i)]);
+    const a = ser(p), b = ser(ST);
+    const max = Math.max(...a.concat(b).map((q) => q[1] || 0));
+    return `<div class="mini"><h4>${title}</h4><p class="small">${sentence}</p>${lineChart(
+      [{ pts: b, color: "var(--muted)", dash: true, w: 1.5 }, { pts: a, color: "var(--s1)" }],
+      { fmt, ticks: niceTicks(max * 1.05), xLabels: yrLabels, mark: yi, H: 190, W: 320, Lm: 40, label: `${title} for ${p.name} and Louisiana, ${Y[0]} to ${Y[L]}` })}</div>`;
   }
 
   // ---- detail panel
-  function cmp(v, s, f, higher = "more") {
-    const diff = v - s;
-    if (Math.abs(diff) / s < 0.02) return `<span class="cmp">About the same as the state (${f(s)})</span>`;
-    return `<span class="cmp ${diff > 0 ? "up" : ""}">${diff > 0 ? "Above" : "Below"} the state's ${f(s)}</span>`;
+  function cmp(v, s, f) {
+    if (v == null || s == null) return "";
+    if (Math.abs(v - s) / s < 0.02) return `<span class="cmp">About the same as the state (${f(s)})</span>`;
+    return `<span class="cmp ${v > s ? "up" : ""}">${v > s ? "Above" : "Below"} the state's ${f(s)}</span>`;
   }
   const SHOW = 8;
   function select(name, fromMap) {
     current = byName[name];
-    const p = current;
+    const p = current, i = yi;
     $("#parishPick").value = name;
     Object.entries(pathEls).forEach(([n, el]) => { el.classList.toggle("sel", n === name); if (n === name) el.parentNode.appendChild(el); });
     try { history.replaceState(null, "", "#" + name.toLowerCase().replace(/[^a-z]+/g, "-")); } catch (e) {}
-    const sys = D.systems.filter((s) => s.parish === name).sort((a, b) => b.students - a.students);
-    const parts = D.categories.map(([k, label], i) => ({ k, label, v: p[k], c: CAT_COLORS[i] }));
-    // out of every $100, rounded so the parts add to exactly 100
-    const raw = parts.map((x) => (x.v / p.spend) * 100), fl = raw.map(Math.floor);
-    let left = 100 - fl.reduce((a, b) => a + b, 0);
-    raw.map((r, i) => [r - fl[i], i]).sort((a, b) => b[0] - a[0]).slice(0, left).forEach(([, i]) => fl[i]++);
-    parts.forEach((x, i) => (x.d = fl[i]));
-    const maxPay = Math.max(p.teacher_pay, p.admin_pay);
-    const trendSys = sys.filter((s) => D.trends[s.code]);
+    const sys = D.systems.filter((s) => s.parish === name && s.students[i]).sort((a, b) => b.students[i] - a.students[i]);
+    const spend = p.spend[i];
+    const parts = D.categories.map(([k, label], j) => ({ k, label, v: p[k][i] || 0, c: CAT_COLORS[j] }));
+    const raw = parts.map((x) => (x.v / spend) * 100), fl = raw.map(Math.floor);
+    const left = 100 - fl.reduce((a, b) => a + b, 0);
+    raw.map((r, j) => [r - fl[j], j]).sort((a, b) => b[0] - a[0]).slice(0, left).forEach(([, j]) => fl[j]++);
+    parts.forEach((x, j) => (x.d = fl[j]));
+    const maxPay = Math.max(p.teacher_pay[i], p.admin_pay[i]);
+    const ch = M.change(p, L), chS = M.change(ST, L);
+    const trendSys = D.systems.filter((s) => s.parish === name && D.trends[s.code]);
     const palette = ["var(--s1)", "var(--c3)", "var(--c4)", "var(--c5)", "var(--c6)"];
-    const series = [{ pts: D.state_trend, color: "var(--muted)", dash: true, label: "Louisiana (parish and city systems)", w: 1.5 },
-      ...trendSys.map((s, i) => ({ pts: D.trends[s.code], color: palette[i % palette.length], label: s.name }))];
-    const yMax = Math.max(...series.flatMap((s) => s.pts.map((q) => q[1])));
+    const longSeries = [{ pts: D.state_trend, color: "var(--muted)", dash: true, label: "Louisiana (parish and city systems)", w: 1.5 },
+      ...trendSys.map((s, j) => ({ pts: D.trends[s.code], color: palette[j % palette.length], label: s.name }))];
+    const longMax = Math.max(...longSeries.flatMap((s) => s.pts.map((q) => q[1])));
     const budgets = D.budgets.filter((b) => b.parish === name);
     const chip = (b) => !b.found ? `<span class="chip bad">Not found</span>` :
       (/high/i.test(b.detail) ? `<span class="chip good">Detailed</span>` : /medium/i.test(b.detail) ? `<span class="chip warn">Some detail</span>` : `<span class="chip warn">Summary only</span>`);
+    const charterShare = M.charterShare(p, i);
 
     $("#detail").innerHTML = `
       <div style="display:grid; gap:6px;">
-        <div class="eyebrow">${esc(name)} Parish · ${D.school_year}</div>
-        <h2>${p.charter_students ? `${fmt0.format(p.students)} students, ${pct(p.charterShare)} in charter schools` : `${fmt0.format(p.students)} students`}</h2>
+        <div class="eyebrow">${esc(name)} Parish · ${Y[i]}</div>
+        <h2>${charterShare ? `${fmt0.format(p.students[i])} students, ${pct(charterShare)} in charter schools` : `${fmt0.format(p.students[i])} students`}</h2>
       </div>
       <div class="statrow">
-        <div class="stat"><span class="small muted">Spent per student</span><b>${money(p.per)}</b>${cmp(p.per, ST.per, money)}</div>
-        <div class="stat"><span class="small muted">Per resident</span><b>${money(p.perRes)}</b>${cmp(p.perRes, stInParish / stPop, money)}</div>
-        <div class="stat"><span class="small muted">In all</span><b>${short(p.spend)}</b><span class="cmp">Day-to-day spending</span></div>
+        <div class="stat"><span class="small muted">Spent per student</span><b>${money(M.per(p, i))}</b>${cmp(M.per(p, i), M.per(ST, i), money)}</div>
+        <div class="stat"><span class="small muted">Per resident</span><b>${money(M.perRes(p, i))}</b>${cmp(M.perRes(p, i), stVal("perRes", i), money)}</div>
+        <div class="stat"><span class="small muted">Since ${Y[0]}</span><b>${ch == null ? "–" : signed(ch)}</b><span class="cmp">Per student to ${Y[L]}, after inflation. Statewide ${signed(chS)}.</span></div>
       </div>
 
       <div style="display:grid; gap:10px;">
-        <h3>Out of every $100, ${esc(name)} schools spent $${parts[0].d} on classroom instruction</h3>
+        <h3>Out of every $100, ${esc(name)} schools spent $${parts[0].d} on classroom instruction in ${Y[i]}</h3>
         <div class="split" role="img" aria-label="${parts.map((x) => `${x.label} $${x.d}`).join(", ")}">
           ${parts.filter((x) => x.d > 0).map((x) => `<div style="flex:${x.d}; background:var(--${x.c}); color:var(--${x.c}-ink)">${x.d >= 5 ? "$" + x.d : ""}</div>`).join("")}
         </div>
         <div class="key">${parts.map((x) => `<div><i style="background:var(--${x.c})"></i>${x.label}<span class="v">$${x.d} · ${short(x.v)}</span></div>`).join("")}</div>
-        <p class="small muted">Statewide: $${Math.round(stInstr * 100)} on classroom instruction and $${Math.round(stCentral * 100)} on central offices out of every $100.</p>
+        <p class="small muted">${short(spend)} in day-to-day spending. Statewide: $${Math.round(M.instr(ST, i) * 100)} on classroom instruction and $${Math.round(M.central(ST, i) * 100)} on central offices out of every $100.</p>
       </div>
 
       <div style="display:grid; gap:10px;">
         <h3>Teachers vs administrators</h3>
-        <p class="callout">For every <b>$1</b> paid to administrators, ${esc(name)} schools paid <b>$${p.ratio.toFixed(2)}</b> to teachers. Statewide it is $${stRatio.toFixed(2)}.</p>
+        <p class="callout">For every <b>$1</b> paid to administrators in ${Y[i]}, ${esc(name)} schools paid <b>${ratioF(M.ratio(p, i))}</b> to teachers. Statewide it was ${ratioF(M.ratio(ST, i))}.</p>
         <div class="pay">
-          <div class="payrow"><span>Teachers</span><div class="bar" style="width:${(p.teacher_pay / maxPay) * 100}%"></div><span class="v">${short(p.teacher_pay)}</span></div>
-          <div class="payrow"><span>Administrators</span><div class="bar admin" style="width:${(p.admin_pay / maxPay) * 100}%"></div><span class="v">${short(p.admin_pay)}</span></div>
+          <div class="payrow"><span>Teachers</span><div class="bar" style="width:${(p.teacher_pay[i] / maxPay) * 100}%"></div><span class="v">${short(p.teacher_pay[i])}</span></div>
+          <div class="payrow"><span>Administrators</span><div class="bar admin" style="width:${(p.admin_pay[i] / maxPay) * 100}%"></div><span class="v">${short(p.admin_pay[i])}</span></div>
         </div>
-        <p class="small muted">Salaries only, before benefits. That is ${money(p.teacher_pay / p.students)} in teacher pay and ${money(p.admin_pay / p.students)} in administrator pay per student.</p>
+        <p class="small muted">Salaries only, before benefits: ${money(p.teacher_pay[i] / p.students[i])} in teacher pay and ${money(p.admin_pay[i] / p.students[i])} in administrator pay per student.</p>
+      </div>
+
+      <div style="display:grid; gap:14px;" class="chart">
+        <h3>Over time, ${Y[0]} to ${Y[L]}</h3>
+        <div class="chartkey"><span><i style="background:var(--s1)"></i>${esc(name)} (all public schools)</span><span><i style="background:var(--muted)"></i>Louisiana</span></div>
+        <div class="minis">
+          ${overTime(p, "perReal", (v) => v ? "$" + v / 1000 + "k" : "$0", "Per student, in 2024-25 dollars", `${money(M.perReal(p, 0))} in ${Y[0]}, ${money(M.perReal(p, L))} in ${Y[L]}.`)}
+          ${overTime(p, "instr", (v) => Math.round(v * 100) + "%", "Share to classrooms", `${pct(M.instr(p, 0))} in ${Y[0]}, ${pct(M.instr(p, L))} in ${Y[L]}.`)}
+          ${overTime(p, "ratio", (v) => "$" + v, "Teacher $ per administrator $1", `${ratioF(M.ratio(p, 0))} in ${Y[0]}, ${ratioF(M.ratio(p, L))} in ${Y[L]}.`)}
+        </div>
+        <p class="src">Calculated from [1][2], adjusted for inflation [5]. The dotted line marks ${Y[i]}.</p>
       </div>
 
       <div style="display:grid; gap:10px;">
-        <h3>School systems in ${esc(name)}</h3>
+        <h3>School systems in ${esc(name)}, ${Y[i]}</h3>
         <div class="tablewrap"><table>
           <thead><tr><th>School system</th><th class="r">Students</th><th class="r">Per student</th><th class="r">To classrooms</th><th class="r">Teacher $ per admin $1</th></tr></thead>
-          <tbody>${sys.map((s, i) => `<tr ${i >= SHOW ? 'class="more" hidden' : ""}><td>${esc(s.name)}<br><span class="tag">${TYPE_LABEL[s.type] || s.type}${s.type === "state_special" ? " · not counted in parish totals" : ""}${s.type === "parish_system" && p.charterShare > 0.5 ? " · also oversees the parish's charter schools, so its cost per student it teaches directly is high" : ""}</span></td>
-            <td class="r">${fmt0.format(s.students)}</td><td class="r">${money(s.spend / s.students)}</td>
-            <td class="r">${pct(s.instruction / s.spend)}</td><td class="r">${s.admin_pay ? "$" + (s.teacher_pay / s.admin_pay).toFixed(2) : "–"}</td></tr>`).join("")}</tbody>
+          <tbody>${sys.map((s, j) => `<tr ${j >= SHOW ? 'class="more" hidden' : ""}><td>${esc(s.name)}<br><span class="tag">${TYPE_LABEL[s.type] || s.type}${s.type === "state_special" ? " · not counted in parish totals" : ""}${s.type === "parish_system" && charterShare > 0.5 ? " · also oversees the parish's charter schools, so its cost per student it teaches directly is high" : ""}</span></td>
+            <td class="r">${fmt0.format(s.students[i])}</td><td class="r">${money(s.spend[i] / s.students[i])}</td>
+            <td class="r">${pct(s.instruction[i] / s.spend[i])}</td><td class="r">${s.admin_pay[i] ? ratioF(s.teacher_pay[i] / s.admin_pay[i]) : "–"}</td></tr>`).join("")}</tbody>
         </table></div>
         ${sys.length > SHOW ? `<p><button type="button" class="linkbtn" id="showAll">Show all ${sys.length} school systems</button></p>` : ""}
-        <p class="src">Calculated from [1][2].</p>
+        <p class="src">Calculated from [1][2]. Names are each system's most recent name.</p>
       </div>
 
       <div style="display:grid; gap:10px;" class="chart">
-        <h3>Spending per student since 1992, in 2024 dollars</h3>
-        ${trendSys.length ? lineChart(series, yMax) : ""}
-        <div class="chartkey">${series.map((s) => `<span><i style="background:${s.color}"></i>${esc(s.label)}</span>`).join("")}</div>
-        <p class="src">Census Bureau figures [4] adjusted for inflation [5]. Parish and city school systems only.${name === "Orleans" ? " New Orleans stops at 2005, when most of its schools became charters, which Census does not count." : ""}</p>
+        <h3>The longer view: school boards since 1992</h3>
+        ${trendSys.length ? lineChart(longSeries, { fmt: (v) => v ? "$" + v / 1000 + "k" : "$0", ticks: niceTicks(longMax * 1.05),
+          xLabels: [1995, 2000, 2005, 2010, 2015, 2020].map((v) => [v, String(v)]), label: "Census spending per student since 1992" }) : ""}
+        <div class="chartkey">${longSeries.map((s) => `<span><i style="background:${s.color}"></i>${esc(s.label)}</span>`).join("")}</div>
+        <p class="src">Census Bureau figures by fiscal year [4], in 2024-25 dollars [5]. Parish and city school systems only, so charters are not included. ${name === "Orleans" ? "New Orleans stops at 2005, when most of its schools became charters. " : ""}Census's 2012 figures run high for some systems; see the notes.</p>
       </div>
 
       <div style="display:grid; gap:10px;">
@@ -430,7 +474,7 @@ tr.click { cursor: pointer; }
           ${budgets.map((b) => `<tr><td>${esc(b.system)}</td><td>${chip(b)}</td><td>${b.found ? esc(b.earliest) + (b.latest && b.latest !== b.earliest ? " to " + esc(b.latest) : "") : "–"}</td>
             <td>${b.latest_url ? `<a href="${esc(b.latest_url)}">Latest budget</a>` : b.page ? `<a href="${esc(b.page)}">Budget page</a>` : "–"}</td></tr>`).join("")}
         </tbody></table></div>` : `<p class="muted">No parish or city school board here was surveyed.</p>`}
-        ${p.charter_students ? `<p class="small muted">Charter schools must post their budgets too, but few do. Their audited statements are on the Legislative Auditor's site [6].</p>` : ""}
+        ${charterShare ? `<p class="small muted">Charter schools must post their budgets too, but few do. Their audited statements are on the Legislative Auditor's site [6].</p>` : ""}
       </div>`;
     const sa = $("#showAll");
     if (sa) sa.addEventListener("click", () => { document.querySelectorAll("#detail tr.more").forEach((r) => (r.hidden = false)); sa.hidden = true; });
@@ -438,32 +482,39 @@ tr.click { cursor: pointer; }
     document.querySelectorAll("#compare tbody tr").forEach((tr) => tr.classList.toggle("sel", tr.dataset.p === name));
   }
 
-  // ---- compare table
+  // ---- compare table (selected year)
   const COLS = [
-    { k: "name", label: "Parish", f: (v) => esc(v), text: true },
+    { k: "name", label: "Parish", text: true },
     { k: "students", label: "Students", f: (v) => fmt0.format(v) },
     { k: "per", label: "Per student", f: money, bar: true },
+    { k: "change", label: "Since " + Y[0], f: signed },
     { k: "perRes", label: "Per resident", f: money },
     { k: "instr", label: "To classrooms", f: pct },
     { k: "central", label: "Central office", f: pct },
-    { k: "ratio", label: "Teacher $ per admin $1", f: (v) => "$" + v.toFixed(2) },
+    { k: "ratio", label: "Teacher $ per admin $1", f: ratioF },
     { k: "charterShare", label: "In charters", f: pct },
   ];
+  const cell = (p, k) => k === "name" ? p.name : k === "students" ? p.students[yi] : M[k](p, yi);
   let sortK = "per", sortDir = "desc";
   function drawCompare() {
     const rows = P.slice().sort((a, b) => {
-      const A = a[sortK], B = b[sortK];
-      const c = typeof A === "string" ? A.localeCompare(B) : (A ?? -1) - (B ?? -1);
+      const A = cell(a, sortK), B = cell(b, sortK);
+      const c = typeof A === "string" ? A.localeCompare(B) : (A ?? -Infinity) - (B ?? -Infinity);
       return sortDir === "asc" ? c : -c;
     });
-    const maxPer = Math.max(...P.map((p) => p.per));
-    $("#compare").innerHTML = `<thead><tr>${COLS.map((c) => `<th class="${c.text ? "" : "r"}" scope="col"><button type="button" data-k="${c.k}" ${c.k === sortK ? `data-dir="${sortDir}"` : ""}>${c.label}</button></th>`).join("")}</tr></thead>
-      <tbody>${rows.map((p) => `<tr class="click${current && current.name === p.name ? " sel" : ""}" data-p="${esc(p.name)}" tabindex="0">${COLS.map((c) =>
-        c.bar ? `<td class="r"><span class="cellbar">${c.f(p[c.k])}<i style="width:${(p[c.k] / maxPer) * 60}px"></i></span></td>`
-          : `<td class="${c.text ? "" : "r"}">${p[c.k] == null ? "–" : c.f(p[c.k])}</td>`).join("")}</tr>`).join("")}
-      <tr><td><b>Louisiana</b></td><td class="r"><b>${fmt0.format(ST.students)}</b></td><td class="r"><b>${money(ST.per)}</b></td><td class="r"><b>${money(stInParish / stPop)}</b></td>
-        <td class="r"><b>${pct(stInstr)}</b></td><td class="r"><b>${pct(stCentral)}</b></td><td class="r"><b>$${stRatio.toFixed(2)}</b></td>
-        <td class="r"><b>${pct(P.reduce((a, p) => a + p.charter_students, 0) / ST.students)}</b></td></tr></tbody>`;
+    const maxPer = Math.max(...P.map((p) => M.per(p, yi)));
+    $("#compare").innerHTML = `<caption class="src" style="caption-side:top; text-align:left; padding-bottom:6px;">${Y[yi]} school year. "Since ${Y[0]}" is the change in spending per student to ${Y[yi]}, after inflation.</caption>
+      <thead><tr>${COLS.map((c) => `<th class="${c.text ? "" : "r"}" scope="col"><button type="button" data-k="${c.k}" ${c.k === sortK ? `data-dir="${sortDir}"` : ""}>${c.label}</button></th>`).join("")}</tr></thead>
+      <tbody>${rows.map((p) => `<tr class="click${current && current.name === p.name ? " sel" : ""}" data-p="${esc(p.name)}" tabindex="0">${COLS.map((c) => {
+        const v = cell(p, c.k);
+        if (c.text) return `<td>${esc(v)}</td>`;
+        if (c.bar) return `<td class="r"><span class="cellbar">${c.f(v)}<i style="width:${(v / maxPer) * 60}px"></i></span></td>`;
+        return `<td class="r">${v == null ? "–" : c.f(v)}</td>`;
+      }).join("")}</tr>`).join("")}
+      <tr><td><b>Louisiana</b></td><td class="r"><b>${fmt0.format(ST.students[yi])}</b></td><td class="r"><b>${money(M.per(ST, yi))}</b></td>
+        <td class="r"><b>${yi ? signed(M.change(ST, yi)) : "–"}</b></td><td class="r"><b>${money(stVal("perRes", yi))}</b></td>
+        <td class="r"><b>${pct(M.instr(ST, yi))}</b></td><td class="r"><b>${pct(M.central(ST, yi))}</b></td><td class="r"><b>${ratioF(M.ratio(ST, yi))}</b></td>
+        <td class="r"><b>${pct(stVal("charterShare", yi))}</b></td></tr></tbody>`;
   }
   $("#compare").addEventListener("click", (e) => {
     const b = e.target.closest("th button");
@@ -486,11 +537,11 @@ tr.click { cursor: pointer; }
       <td>${b.latest_url ? `<a href="${esc(b.latest_url)}">Latest</a>` : b.page ? `<a href="${esc(b.page)}">Page</a>` : "–"}</td></tr>`).join("")}</tbody>`;
 
   // ---- start
-  paint(); drawCompare();
-  const fromHash = P.find((p) => "#" + p.name.toLowerCase().replace(/[^a-z]+/g, "-") === location.hash);
-  select((fromHash || byName["Orleans"]).name, false);
+  const slug = (n) => "#" + n.toLowerCase().replace(/[^a-z]+/g, "-");
+  current = P.find((p) => slug(p.name) === location.hash) || byName["Orleans"];
+  paint(); drawCompare(); select(current.name, false);
   window.addEventListener("hashchange", () => {
-    const h = P.find((p) => "#" + p.name.toLowerCase().replace(/[^a-z]+/g, "-") === location.hash);
+    const h = P.find((p) => slug(p.name) === location.hash);
     if (h && h !== current) select(h.name, false);
   });
 })();
