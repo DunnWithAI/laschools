@@ -20,7 +20,7 @@ Workers & Pages → laschools → Settings → Build:
 
 | Setting | Value |
 | --- | --- |
-| Git repository | `andrewedunn/laschools` |
+| Git repository | `DunnWithAI/laschools` |
 | Production branch | `main` |
 | Build command | (none) |
 | Deploy command | `npx wrangler deploy` |
