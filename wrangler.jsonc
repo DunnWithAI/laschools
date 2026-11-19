@@ -1,0 +1,14 @@
+{
+  // Static site: Cloudflare serves site/ as-is. No build step.
+  "name": "laschools",
+  "account_id": "9870313bd43c2ff6bba4ebb61edbf2df",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./site"
+  },
+  "routes": [
+    { "pattern": "laschools.dunn.us", "custom_domain": true }
+  ],
+  // Lets Cloudflare build a preview copy for every pull request (`wrangler preview`).
+  "previews": {}
+}

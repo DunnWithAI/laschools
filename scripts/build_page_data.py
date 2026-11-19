@@ -1,7 +1,9 @@
 # ABOUTME: Assembles everything the explainer page needs (parish map paths, 2023-24 figures,
 # ABOUTME: per-student trends, published-budget survey) into one JSON file in site/.
+import datetime
 import json
 import math
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -9,6 +11,18 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parent.parent
 COMBINED = ROOT / "data" / "combined"
 OUT = ROOT / "site" / "data.json"
+PAGE = ROOT / "site" / "index.html"
+
+
+def stamp_updated(day: datetime.date) -> None:
+    """Set the page's "Updated" date (the <time id="updated"> element)."""
+    html = PAGE.read_text()
+    label = f"{day.day} {day:%B %Y}"
+    new, n = re.subn(r'<time id="updated" datetime="[^"]*">[^<]*</time>',
+                     f'<time id="updated" datetime="{day.isoformat()}">{label}</time>', html)
+    if n != 1:
+        raise SystemExit("index.html has no single <time id=\"updated\"> element")
+    PAGE.write_text(new)
 CITY_SYSTEMS = {"Baker": "East Baton Rouge", "Central": "East Baton Rouge",
                 "Zachary": "East Baton Rouge", "Monroe": "Ouachita", "Bogalusa": "Washington"}
 CATS = [("instruction", "Classroom instruction"), ("support", "Student and teacher support"),
@@ -116,7 +130,10 @@ def main() -> None:
         "budgets": budgets_by_parish(lea), "map": parish_paths(),
     }
     OUT.parent.mkdir(exist_ok=True)
-    OUT.write_text(json.dumps(data, separators=(",", ":"), default=clean))
+    text = json.dumps(data, separators=(",", ":"), default=clean)
+    if not OUT.exists() or OUT.read_text() != text:
+        OUT.write_text(text)
+        stamp_updated(datetime.date.today())
     print(f"{OUT} {OUT.stat().st_size/1024:.0f} KB; {len(parishes)} parishes, {len(systems)} systems, "
           f"{len(data['budgets'])} budget rows, {len(data['map']['paths'])} map shapes")
 

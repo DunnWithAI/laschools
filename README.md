@@ -4,6 +4,7 @@ How every Louisiana public school system spends its money, by parish: per studen
 resident, classrooms vs offices, teachers vs administrators, and who posts a budget online.
 A sibling of nolabudget.dunn.us. First version built 2026-11-19.
 
+Live: https://laschools.dunn.us (deploys from `main`; see [docs/deploying.md](docs/deploying.md)).
 Preview: `python3 -m http.server 4322 --directory site` (or the `schoolbudgets` entry in
 `.claude/launch.json`). Published draft: https://claude.ai/artifact/9btowLCojpzWreyjMamdTY
 

@@ -1,7 +1,12 @@
+<!doctype html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Louisiana School Dollars</title>
+<meta name="description" content="How every Louisiana parish's public schools spend their money: per student, per resident, classrooms vs offices, teachers vs administrators, and who posts a budget online.">
 <meta name="claude:viewport-fit-sides" content="cover">
+<link rel="canonical" href="https://laschools.dunn.us/">
 <style>
 /* Layout: one reading column; a map-and-detail band that sits side by side on wide screens.
    Sibling of nolabudget.dunn.us: same calm, document-like palette, serif to read, sans for numbers. */
@@ -134,12 +139,14 @@ tr.click { cursor: pointer; }
 .notes { display: grid; gap: 12px; font-size: .95rem; color: var(--ink-2); }
 .notes ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; max-width: var(--measure); }
 .src { font-family: var(--sans); font-size: .8rem; color: var(--muted); }
+.foot { display: grid; gap: 4px; padding-top: 24px; border-top: 1px solid var(--rule); font-family: var(--sans); font-size: .85rem; color: var(--muted); }
 .findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
 .finding { display: grid; gap: 6px; align-content: start; padding-top: 12px; border-top: 3px solid var(--accent); }
 .finding b { font-family: var(--sans); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
 @media (prefers-reduced-motion: reduce) { .map path { transition: none; } }
 </style>
-
+</head>
+<body>
 <div class="wrap">
   <header class="top">
     <div class="eyebrow">Louisiana public schools · 2023-24 school year</div>
@@ -203,8 +210,13 @@ tr.click { cursor: pointer; }
       <li id="src-5">U.S. Bureau of Labor Statistics, <a href="https://fred.stlouisfed.org/series/CPIAUCSL">Consumer Price Index for All Urban Consumers</a>, via FRED, averaged over each July-June school year.</li>
       <li id="src-6">Each school system's website; see the links in the table above. Audited financial statements for every school board and most charters are also posted by the <a href="https://www.lla.la.gov/">Louisiana Legislative Auditor</a>.</li>
     </ol>
-    <p class="small muted">A first look, built November 2026. Figures are calculated, not copied from a published table; check the sources before quoting them.</p>
+    <p class="small muted">Figures are calculated, not copied from a published table; check the sources before quoting them.</p>
   </section>
+
+  <footer class="foot">
+    <p>Made by <a href="https://dunn.us" rel="author">Andrew Dunn</a>. <a href="https://github.com/andrewedunn/laschools">Code and data on GitHub</a>.</p>
+    <p>Created <time datetime="2026-11-19">19 November 2026</time> · Updated <time id="updated" datetime="2026-11-19">19 November 2026</time></p>
+  </footer>
 </div>
 
 <script>
@@ -483,3 +495,5 @@ tr.click { cursor: pointer; }
   });
 })();
 </script>
+</body>
+</html>
